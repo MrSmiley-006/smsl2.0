@@ -429,12 +429,12 @@ class Parser:
             return StringNode(tok["value"])
 
     def ident(self):
+        #breakpoint()
         if self.counter < len(self.tokens):
             result = NumberNode(self.tokens[self.counter]["value"]) if self.tokens[self.counter]["type"] == "number" else IdentNode(self.tokens[self.counter]["value"])
             if self.tokens[self.counter]["type"] == "ident":
-                self.counter += 1
-                if self.tokens[self.counter]["value"] == "@":
-                    self.counter += 1
+                if self.tokens[self.counter+1]["value"] == "@":
+                    self.counter += 2
                     result = IndexNode(result.value, self.tokens[self.counter])
             return result
     
