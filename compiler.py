@@ -27,10 +27,11 @@ class Compiler:
         self.instr = 0
         self.func_count = 0
         self.regs = []
-        self.consts = []
+        self.consts = ["0"]
         self.return_stack = []
         self.vars = {}
         self.funcs = OrderedDict()
+        self.lists = []
         self.func_ = func_
     
     def compile(self):
@@ -104,8 +105,11 @@ class Compiler:
                 instr = "NOTEQ"
         #self.free_reg += 1
         prev_node = self.cur_node
-        self.cur_node = prev_node.left
-        self.expr()
+        if isinstance(self.cur_node.left, IdentNode) and instr == "STORE":
+            regs = self.cur_node.left.value
+        else:
+            self.cur_node = prev_node.left
+            self.expr()
         self.cur_node = prev_node.right
         self.expr()
         regs = ""
@@ -124,12 +128,25 @@ class Compiler:
                 self.out += "ADD\n"
         """
 
+    def unary_op_node(self):
+        #breakpoint()
+        cur_node = self.cur_node
+        self.cur_node = self.cur_node.value
+        self.expr()
+        match cur_node.type:
+            case "-":
+                allocated_reg = self.reg_alloc(1)[0]
+                self.out += f"LOAD_CONST 0 {allocated_reg}\n"
+                self.out += f"SUB {allocated_reg} {self.get_out_reg()} {allocated_reg}\n"
+        
     def expr(self):
         """
         číslo, mat. výraz, volání funkce, (text)
         """
         if isinstance(self.cur_node, OpNode):
             self.op_node()
+        elif isinstance(self.cur_node, UnaryOpNode):
+            self.unary_op_node()
         elif isinstance(self.cur_node, NumberNode) or isinstance(self.cur_node, StringNode):
             self.load_const()
         elif isinstance(self.cur_node, IdentNode):
@@ -201,14 +218,25 @@ class Compiler:
     def list(self):
         list_node = self.cur_node
         size = len(list_node.args)
-        start_addr = self.reg_alloc(size)
+        start_addr = self.lowest_free_reg()
         self.out += f"MAKE_ARRAY {start_addr} {size}\n"
+        self.lists.append(self.cur_node)
         for i in list_node.args:
             self.cur_node = i
             self.expr()
 
     def index(self):
-        pass
+        breakpoint()
+        allocated_reg = self.reg_alloc(1)[0]
+        cur_node = self.cur_node
+        self.cur_node = self.cur_node.list
+        self.expr()
+        self.cur_node = cur_node.index
+        self.expr()
+        index = self.out.split("\n")[-2].split(" ")[-1]
+        #if isinstance(self.cur_node, IdentNode):
+            #index = self.vars[self.cur_node.value]
+        self.out += f"GET_ELEMENT {self.vars[cur_node.list.value]} {index} {allocated_reg}\n"
         
     def load_const(self):
         allocated_reg = self.reg_alloc(1)[0]
@@ -222,7 +250,7 @@ class Compiler:
         allocated_reg = self.reg_alloc(1)[0]
         if self.cur_node.value not in self.vars:
             raise SmSLError(f"{self.cur_node.value} is not defined.", self.line)
-
+        
         self.out += "LOAD_VAR " + self.cur_node.value + " " + str(allocated_reg) + "\n"
         self.instr += 1
 
@@ -282,7 +310,7 @@ class Compiler:
         regs = len(code)
         for i in code:
             if i.startswith("consts:") or i.startswith("vars:"):
-                regs -= 1
+               regs -= 1
             if re.match(r"\s*RETURN", i):
                 func_returns = True
 
@@ -316,7 +344,7 @@ class Compiler:
     def return_val(self):
         self.cur_node = self.cur_node.expr
         self.expr()
-        return_reg = self.out[-2]
+        return_reg = self.get_out_reg()
         self.out += f"RETURN {return_reg}\n"
 
 
@@ -330,6 +358,16 @@ class Compiler:
     def assign(self):
         pass
 
+    def get_out_reg(self):
+        out = self.out.split("\n")
+        out_reg = int(out[-2].split(" ")[-1])
+        return out_reg
+    
+    def lowest_free_reg(self):
+        for i in range(200):
+            if i not in self.regs:
+                return i
+    
     def reg_alloc(self, regs):
         allocated_regs = []
         # free_reg = self.free_reg

@@ -1,0 +1,13 @@
+
+func write[text] ( 
+     "COMPILETO:
+     LOAD_VAR text 0
+     WRITE 0"
+)
+
+func _read[] (
+     "COMPILETO:
+     READ 0
+     RETURN 0"
+)
+

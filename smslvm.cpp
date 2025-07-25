@@ -50,6 +50,7 @@ public:
     bounds_check(index);
     registry[start+index] = value;
   }
+  
   int get_size() {
     return size;
   }
@@ -148,6 +149,15 @@ bool opcode_exists(unsigned char e) {
     if (opcodes[i] == e)
       return true;
   return false;
+}
+
+void sort_array(Array& arr) {
+  vector<int> arr2;
+  for (int i = 0;i < arr.get_size();i++)
+    arr2.push_back(any_cast<int>(arr.get(i)));
+  sort(arr2.begin(), arr2.end());
+  for (int i = 0;i < arr.get_size();i++)
+    arr.set(i, any(arr2.at(i)));
 }
 
 vector<string> get_consts(vector<unsigned char> data) {
@@ -544,15 +554,53 @@ void run(vector<string> consts, map<string, string> vars, vector<func_t> funcs, 
       int array_idx = stoi(i.args.at(0));
       int elem_idx = stoi(i.args.at(1));
       int out_addr = stoi(i.args.at(2));
-      registry[out_addr] = arrays[array_idx].get(elem_idx);
+      registry[out_addr] = arrays[array_idx].get(any_to_int(registry[elem_idx]));
       break;
     }
     case 38: { // SET_ELEMENT
-      int array_idx =  stoi(i.args.at(0));
+      int array_idx = stoi(i.args.at(0));
       int val = stoi(i.args.at(1));
       int elem_idx = stoi(i.args.at(2));
       arrays[array_idx].set(elem_idx, val);
       break;
+    }
+    case 39: { // GET_ARRAY_LENGTH
+      int array_idx = stoi(i.args.at(0));
+      int out_reg = stoi(i.args.at(1));
+      registry[out_reg] = arrays[array_idx].get_size();
+    }
+    case 40: { // FIND_ELEMENT
+      int array_idx = stoi(i.args.at(0));
+      int elem_addr = stoi(i.args.at(1));
+      int out_addr = stoi(i.args.at(2));
+      Array a = arrays[array_idx];
+      registry[out_addr] = any(-1);
+      for (int j = 0;j < a.get_size();j++)
+	if (any_to_string(a.get(j)) == any_to_string(registry[elem_addr]))
+	  registry[out_addr] = any(j);
+    }
+    case 41: { // SORT_ARRAY
+      int array_idx = stoi(i.args.at(0));
+      Array a = arrays[array_idx];
+      sort_array(a);
+    }
+    case 42: { // JOIN_STRING
+      int str1 = stoi(i.args.at(0));
+      int str2 = stoi(i.args.at(1));
+      int out_reg = stoi(i.args.at(2));
+      int in_place_flag = stoi(i.args.at(3));
+      stringstream strstr;
+      strstr << any_to_string(registry[str1]) << any_to_string(registry[str2]);
+      if (in_place_flag == 1)
+	registry[str1] = strstr.str();
+      else
+	registry[out_reg] = strstr.str();
+    }
+    case 43: { // INDEX_STRING
+      int str_addr = stoi(i.args.at(0));
+      int index_addr = stoi(i.args.at(1));
+      int out_reg = stoi(i.args.at(3));
+      registry[out_reg] = any_to_string(registry[str_addr])[any_to_int(registry[index_addr])];
     }
     }
     if (idx >= code.size())
@@ -576,7 +624,7 @@ int main(int argc, char **argv) {
   }
   while (!feof(csmsl_file)) {
    file_contents.push_back(fgetc(csmsl_file));
-   }
+      }
   /*ifstream csmsl_file;
   csmsl_file.open(argv[1], ios::binary);
   // Přejít na konec souboru

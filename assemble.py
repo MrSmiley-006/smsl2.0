@@ -110,6 +110,16 @@ def assemble(asm, func=False, args=None):
                 bytecode += b"\x25"
             case "SET_ELEMENT":
                 bytecode += b"\x26"
+            case "GET_ARRAY_LENGTH":
+                bytecode += b"\x27"
+            case "FIND_ELEMENT":
+                bytecode += b"\x28"
+            case "SORT_ARRAY":
+                bytecode += b"\x29"
+            case "JOIN_STRING":
+                bytecode += b"\x2A"
+            case "INDEX_STRING":
+                bytecode += b"\x2B"
             case _:
                 invalid_instruction = True
         for j in i:

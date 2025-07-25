@@ -1,0 +1,21 @@
+
+func len[arr] (
+     "COMPILETO:
+     LOAD_VAR arr 0
+     GET_ARRAY_LENGTH 0 1
+     RETURN 1"
+)
+
+func find[arr, elem] (
+     "COMPILETO:
+     LOAD_VAR arr 0
+     LOAD_VAR elem 1
+     FIND_ELEMENT 0 1 2
+     RETURN 2"
+)
+
+func sort[arr] (
+     "COMPILETO
+     LOAD_VAR arr 0
+     SORT_ARRAY 0"
+)

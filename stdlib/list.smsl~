@@ -1,0 +1,6 @@
+
+func len[arr] (
+     "COMPILETO:
+     LOAD_VAR 0 0
+     GET_ARRAY_LENGTH 0 1"
+)
