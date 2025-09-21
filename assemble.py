@@ -1,4 +1,5 @@
 import re
+import sys
 
 def assemble(asm, func=False, args=None):
     asm = asm.split("\nFUNC_END")
@@ -31,7 +32,7 @@ def assemble(asm, func=False, args=None):
                 bytecode += i.encode() + b"\0"
     for i in funcs:
         i_ = i
-        breakpoint()
+        if "-d" in sys.argv: breakpoint()
         match = re.match(r"\w+:\s?(\w+,?\s?)+\n", i)
         if match != None:
             i = i.replace(match.group(), "")
@@ -45,7 +46,7 @@ def assemble(asm, func=False, args=None):
                     func_bytecode = bytes(func_bytecode)
                     break
                 del func_bytecode[j]"""
-        breakpoint()
+        if "-d" in sys.argv: breakpoint()
         bytecode += func_bytecode
     #if funcs:
     #    bytecode += b"\xFE"
@@ -56,7 +57,7 @@ def assemble(asm, func=False, args=None):
             bytecode += b"\3" + str(line)"""
         i = re.sub(r"^( + )|\t+", "", i)
         i = i.split(" ")
-        #if not func: breakpoint()
+        #if not func: if "-d" in sys.argv: breakpoint()
         match i[0]:
             case "LOAD_CONST":
                 bytecode += b"\4"
@@ -130,7 +131,7 @@ def assemble(asm, func=False, args=None):
         if bytecode[-1] != 254:
             bytecode = bytecode[:-1] +  b"\0" # nahrazení znaku \1 na konci znakem \0
 
-    #breakpoint()
+    #if "-d" in sys.argv: breakpoint()
     return bytecode
 
 if __name__ == "__main__":
