@@ -2,7 +2,6 @@ from parser import *
 from error import SmSLError
 from collections import OrderedDict, namedtuple
 import re
-import sys
 
 class Function:
     def __init__(self, name, params, code):
@@ -54,7 +53,7 @@ class Compiler:
                 funcs = funcs.replace("-1", str(len(self.consts)-1))
             self.out = ",".join([str(x) for x in self.consts]) + "\n" \
                 + funcs + self.out
-            if "-d" in sys.argv: breakpoint()
+            breakpoint()
             return self.out
         else:
             return Func([str(x) for x in self.consts], self.vars, self.funcs, self.out)
@@ -130,7 +129,7 @@ class Compiler:
         """
 
     def unary_op_node(self):
-        #if "-d" in sys.argv: breakpoint()
+        #breakpoint()
         cur_node = self.cur_node
         self.cur_node = self.cur_node.value
         self.expr()
@@ -227,7 +226,7 @@ class Compiler:
             self.expr()
 
     def index(self):
-        if "-d" in sys.argv: breakpoint()
+        breakpoint()
         allocated_reg = self.reg_alloc(1)[0]
         cur_node = self.cur_node
         self.cur_node = self.cur_node.list
@@ -256,13 +255,13 @@ class Compiler:
         self.instr += 1
 
     def block(self, node):
-        if "-d" in sys.argv: breakpoint()
+        breakpoint()
         compiler = self.__class__(node.block.args, True)
         compiler.funcs = self.funcs
         compiler.vars = self.vars
         if isinstance(node, FuncNode):
             compiler.vars.update(dict.fromkeys(node.args.args, "0"))
-        #if "-d" in sys.argv: breakpoint()
+        #breakpoint()
         code = compiler.compile()
         return code
         
@@ -287,7 +286,7 @@ class Compiler:
         self.out += f"CALL {self.funcs.index(call_node.func_name)} {allocated_reg} {' '.join(regs)}\n"
 
     def func(self):
-        if "-d" in sys.argv: breakpoint()
+        breakpoint()
         print("func")
         func_returns = False
         try:
@@ -328,10 +327,10 @@ class Compiler:
             if i.endswith("."):
                 continue
             i = i.split(" ")
-            #if "-d" in sys.argv: breakpoint()
+            #breakpoint()
             for j in i:
                 if j.isnumeric():
-                    #if "-d" in sys.argv: breakpoint()
+                    #breakpoint()
                     k = int(j) + memory[0]
                     i[i.index(j)] = str(k)
             code[i_] = " ".join(i)"""
@@ -340,7 +339,7 @@ class Compiler:
         print("code:\n" + code)
         func = Function(func_node.name.value, func_node.args.args, code)
         self.funcs[func_node.name.value] = func
-        #if "-d" in sys.argv: breakpoint()
+        #breakpoint()
 
     def return_val(self):
         self.cur_node = self.cur_node.expr

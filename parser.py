@@ -1,5 +1,3 @@
-import sys
-
 class NumberNode:
     def __init__(self, value):
         self.value = int(value)
@@ -160,7 +158,7 @@ class Parser:
         result = self.logic_expr()
         if self.counter < len(self.tokens):
             if self.tokens[self.counter]["value"] in ("if", "while", "until"):
-                if "-d" in sys.argv: breakpoint()
+                breakpoint()
                 tok = self.tokens[self.counter]
                 self.counter += 1
                 expr = self.logic_expr()
@@ -202,7 +200,7 @@ class Parser:
                     result = ElseNode(block)
                         
             elif self.tokens[self.counter]["value"] == "for":
-                if "-d" in sys.argv: breakpoint()
+                breakpoint()
                 self.counter += 1
                 var = IdentNode(self.tokens[self.counter]["value"])
                 self.counter += 2
@@ -307,7 +305,7 @@ class Parser:
                    self.counter += 1
                elif self.tokens[self.counter]["value"] == "]":
                    self.counter += 1
-                   
+                   break
                else:
                    args.args.append(self.tokens[self.counter]["value"])
                    self.counter += 1
@@ -404,7 +402,7 @@ class Parser:
                 self.counter += 1
                 return UnaryOpNode("++", self.factor())
         if tok["type"] in ("number", "ident"):
-            #if "-d" in sys.argv: breakpoint()
+            #breakpoint()
             result = self.ident()
             self.counter += 1
             if self.tokens[self.counter]["value"] == "->":
@@ -438,11 +436,11 @@ class Parser:
         self.counter -= 1
         list = IdentNode(self.tokens[self.counter]["value"])
         self.counter += 2
-        if "-d" in sys.argv: breakpoint()
+        breakpoint()
         return IndexNode(list, self.expr())
 
     def ident(self):
-        #if "-d" in sys.argv: breakpoint()
+        #breakpoint()
         if self.counter < len(self.tokens):
             result = NumberNode(self.tokens[self.counter]["value"]) if self.tokens[self.counter]["type"] == "number" else IdentNode(self.tokens[self.counter]["value"])
             return result
